@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -179,6 +180,8 @@ func APIShipmentStatus(shipmentURL string, param *APIShipmentStatusReq) (*APIShi
 	if err != nil {
 		return nil, err
 	}
+
+	log.Print("Status:" + ssr.Status)
 
 	return ssr, nil
 }
