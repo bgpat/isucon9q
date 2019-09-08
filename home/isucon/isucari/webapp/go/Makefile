@@ -7,9 +7,15 @@ isucari: *.go
 
 .PHONY: deploy
 deploy:
-	systemctl stop isucari.golang.service
-	$(MAKE) isucari
-	systemctl start isucari.golang.service
+	ssh isucon9q-1 "systemctl stop isucari.golang.service"
+	ssh isucon9q-2 "systemctl stop isucari.golang.service"
+	ssh isucon9q-3 "systemctl stop isucari.golang.service"
+	ssh isucon9q-1 "cd /home/isucon/isucari/webapp/go && make isucari"
+	scp isucon9q-1:/home/isucon/isucari/webapp/go/isucari isucon9q-2:/home/isucon/isucari/webapp/go/isucari
+	scp isucon9q-1:/home/isucon/isucari/webapp/go/isucari isucon9q-3:/home/isucon/isucari/webapp/go/isucari
+	ssh isucon9q-1 "systemctl start isucari.golang.service"
+	ssh isucon9q-2 "systemctl start isucari.golang.service"
+	ssh isucon9q-3 "systemctl start isucari.golang.service"
 
 rotate.access_log:
 	cp /var/log/nginx/access.log /var/log/nginx/access.log.backup
