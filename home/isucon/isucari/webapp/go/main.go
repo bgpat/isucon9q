@@ -332,9 +332,8 @@ func main() {
 		dbname,
 	)
 
-	dbx, errs = mssqlx.ConnectMasterSlaves("mysql", []string{dsn}, []string{dsn_slave})
-	ierr := multierr.Append(errs...)
-	if err != nil {
+	dbx, errs := mssqlx.ConnectMasterSlaves("mysql", []string{dsn}, []string{dsn_slave})
+	if err := multierr.Combine(errs...); err != nil {
 		log.Fatalf("failed to connect to DB: %+v.", err)
 	}
 	defer dbx.Close()
