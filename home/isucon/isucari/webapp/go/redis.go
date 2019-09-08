@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"sort"
 	"strconv"
@@ -65,6 +66,7 @@ func getItems(statuses []string, createdAt time.Time, limit int64) ([]Item, erro
 			mu.Lock()
 			zs = append(zs, z...)
 			mu.Unlock()
+			log.Println("zrange", itemsKey(status), status, len(z),strconv.FormatFloat(scoreByCreatedAt(createdAt), 'f', -1, 64))
 			return nil
 		})
 	}
