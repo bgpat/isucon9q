@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+
+	"github.com/go-redis/redis"
+	"github.com/pkg/errors"
 )
 
 func postInitialize(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +50,12 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := initializeItems(); err != nil {
+		log.Printf("%+v\n", err)
+		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
+		return
+	}
+
 	res := resInitialize{
 		// キャンペーン実施時には還元率の設定を返す。詳しくはマニュアルを参照のこと。
 		Campaign: 0,
@@ -56,4 +65,22 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json;charset=utf-8")
 	json.NewEncoder(w).Encode(res)
+}
+
+func initializeItems() error {
+	var items []Item
+	status := "on_sale"
+	err := dbx.Select(&items, "SELECT * FROM `items` WHERE `status` = ?", status)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	z := make([]redis.Z, 0, len(items))
+	for _, item := range items {
+		z = append(z, redis.Z{
+			Score:  float64(item.CreatedAt.Unix()) + float64(item.CreatedAt.UnixNano())*1e-9,
+			Member: item.ID,
+		})
+	}
+	key := itemsKey(status)
+	return errors.WithStack(redisCli.ZAdd(key, z...).Err())
 }
