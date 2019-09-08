@@ -56,7 +56,7 @@ func getItems(statuses []string, createdAt time.Time, limit int64) ([]Item, erro
 		status := status
 		eg.Go(func() error {
 			z, err := redisCli.ZRevRangeByScoreWithScores(itemsKey(status), redis.ZRangeBy{
-				Max:   strconv.FormatFloat(calcScore(createdAt, 0), 'f', -1, 64),
+				Max:   strconv.FormatFloat(calcScore(createdAt, 0), 'f', 7, 64),
 				Count: limit,
 			}).Result()
 			if err != nil {
