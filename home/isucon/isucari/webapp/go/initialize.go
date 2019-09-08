@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+
+	"github.com/go-redis/redis"
+	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 func postInitialize(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +51,17 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := redisCli.FlushDB().Err(); err != nil {
+		log.Printf("%+v\n", err)
+		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
+		return
+	}
+	if err := initializeItems(); err != nil {
+		log.Printf("%+v\n", err)
+		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
+		return
+	}
+
 	res := resInitialize{
 		// キャンペーン実施時には還元率の設定を返す。詳しくはマニュアルを参照のこと。
 		Campaign: 0,
@@ -56,4 +71,34 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json;charset=utf-8")
 	json.NewEncoder(w).Encode(res)
+}
+
+func initializeItems() error {
+	var eg errgroup.Group
+	var items []Item
+	for _, status := range []string{
+		ItemStatusOnSale,
+		ItemStatusTrading,
+		ItemStatusSoldOut,
+		ItemStatusStop,
+		ItemStatusCancel,
+	} {
+		status := status
+		eg.Go(func() error {
+			err := dbx.Select(&items, "SELECT * FROM `items` WHERE `status` = ?", status)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			z := make([]redis.Z, 0, len(items))
+			for _, item := range items {
+				z = append(z, redis.Z{
+					Score:  float64(item.CreatedAt.Unix()) + float64(item.CreatedAt.UnixNano())*1e-18,
+					Member: item.ID,
+				})
+			}
+			key := itemsKey(status)
+			return errors.WithStack(redisCli.ZAdd(key, z...).Err())
+		})
+	}
+	return errors.WithStack(eg.Wait())
 }

@@ -11,3 +11,7 @@ var redisCli = redis.NewClient(&redis.Options{
 	Password: "", // no password set
 	DB:       0,  // use default DB
 })
+
+func itemsKey(status string) string {
+	return "items_" + status
+}
