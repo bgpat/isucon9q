@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
 	"github.com/linxGnu/mssqlx"
+	"go.uber.org/multierr"
 	goji "goji.io"
 	"goji.io/pat"
 	"golang.org/x/crypto/bcrypt"
@@ -331,9 +332,10 @@ func main() {
 		dbname,
 	)
 
-	dbx, err = mssqlx.ConnectMasterSlaves("mysql", []string{dsn}, []string{dsn_slave})
+	dbx, errs = mssqlx.ConnectMasterSlaves("mysql", []string{dsn}, []string{dsn_slave})
+	ierr := multierr.Append(errs...)
 	if err != nil {
-		log.Fatalf("failed to connect to DB: %s.", err.Error())
+		log.Fatalf("failed to connect to DB: %+v.", err)
 	}
 	defer dbx.Close()
 
