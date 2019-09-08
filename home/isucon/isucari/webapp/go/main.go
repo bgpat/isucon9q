@@ -62,6 +62,8 @@ var (
 	templates *template.Template
 	dbx       *sqlx.DB
 	store     sessions.Store
+
+	hostname string
 )
 
 type Config struct {
@@ -278,6 +280,9 @@ func init() {
 }
 
 func main() {
+
+	hostname, _ = os.Hostname()
+
 	host := os.Getenv("MYSQL_HOST")
 	if host == "" {
 		host = "127.0.0.1"
@@ -1633,7 +1638,7 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		ext = ".jpg"
 	}
 
-	imgName := fmt.Sprintf("%s%s", secureRandomStr(16), ext)
+	imgName := fmt.Sprintf("%s/%s%s", hostname, secureRandomStr(16), ext)
 	err = ioutil.WriteFile(fmt.Sprintf("../public/upload/%s", imgName), img, 0644)
 	if err != nil {
 		log.Print(err)
