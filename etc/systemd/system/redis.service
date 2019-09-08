@@ -2,7 +2,7 @@
 Description = redis daemon
 [Service]
 
-ExecStart = /usr/local/bin/redis-server
+ExecStart = /usr/local/bin/redis-server --protected-mode no
 Restart = always
 Type = simple
 
