@@ -79,7 +79,7 @@ func getItems(statuses []string, createdAt time.Time, limit int64) ([]Item, erro
 	}
 
 	sort.Slice(zs, func(i, j int) bool {
-		return zs[i].Score < zs[j].Score
+		return zs[i].Score > zs[j].Score
 	})
 	limitsize := limit
 	if int64(len(zs)) < limitsize {
@@ -94,7 +94,7 @@ func getItems(statuses []string, createdAt time.Time, limit int64) ([]Item, erro
 		}
 		ids = append(ids, id)
 	}
-	query := "SELECT * FROM `items` WHERE `id` IN (" + strings.Join(ids, ",") + ")"
+	query := "SELECT * FROM `items` WHERE `id` IN (" + strings.Join(ids, ",") + ") ORDER BY created_at DESC"
 	var items []Item
 	err := dbx.Select(&items, query)
 	if err != nil {
