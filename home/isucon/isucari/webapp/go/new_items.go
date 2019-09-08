@@ -19,6 +19,8 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 			outputErrorMsg(w, http.StatusBadRequest, "item_id param error")
 			return
 		}
+	} else {
+		itemID = 60000
 	}
 
 	createdAtStr := query.Get("created_at")
@@ -30,26 +32,16 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 			outputErrorMsg(w, http.StatusBadRequest, "created_at param error")
 			return
 		}
-		createdAt=time.Unix(createdAtInt64, 0)
+		createdAt = time.Unix(createdAtInt64, 0)
 	}
 
 	items := []Item{}
-	if itemID > 0 && createdAtInt64 > 0 {
-		// paging
-		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, createdAt, ItemsPerPage+1, itemID)
-		if err != nil {
-			log.Print(err)
-			outputErrorMsg(w, http.StatusInternalServerError, "db error")
-			return
-		}
-	} else {
-		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, createdAt, ItemsPerPage+1, 999999)
-		// 1st page
-		if err != nil {
-			log.Print(err)
-			outputErrorMsg(w, http.StatusInternalServerError, "db error")
-			return
-		}
+	// paging
+	items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, createdAt, ItemsPerPage+1, itemID)
+	if err != nil {
+		log.Print(err)
+		outputErrorMsg(w, http.StatusInternalServerError, "db error")
+		return
 	}
 
 	itemSimples := []ItemSimple{}
