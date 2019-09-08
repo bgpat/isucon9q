@@ -24,7 +24,7 @@ rotate.access_log:
 	echo  > /var/log/nginx/access.log
 
 rotate.slow_log_at_isucon9q_3:
-	ssh isucon9q-3 "make rotate.slow_log"
+	ssh isucon9q-3 "cd /home/isucon/isucari/webapp/go && make rotate.slow_log"
 
 rotate.slow_log:
 	mysqldumpslow -s t /var/log/mysql/mysql-slow.sql > /var/log/mysql/mysql-slow.sql.backup
