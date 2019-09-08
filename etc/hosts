@@ -1,0 +1,14 @@
+127.0.0.1	localhost
+
+
+# The following lines are desirable for IPv6 capable hosts
+::1	localhost	ip6-localhost	ip6-loopback
+ff02::1	ip6-allnodes
+ff02::2	ip6-allrouters
+
+172.24.135.11	webapp	webapp
+
+172.24.31.215	isucon9q-1	isucon9q-1
+172.24.31.220	isucon9q-2	isucon9q-2
+172.24.31.219	isucon9q-3	isucon9q-3
+
