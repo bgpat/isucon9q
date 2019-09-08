@@ -336,7 +336,7 @@ func main() {
 	if err := multierr.Combine(errs...); err != nil {
 		log.Fatalf("failed to connect to DB: %+v.", err)
 	}
-	defer dbx.Close()
+	defer dbx.Destroy()
 
 	mux := goji.NewMux()
 
