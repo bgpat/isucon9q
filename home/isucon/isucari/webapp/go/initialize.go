@@ -92,7 +92,7 @@ func initializeItems() error {
 			z := make([]redis.Z, 0, len(items))
 			for _, item := range items {
 				z = append(z, redis.Z{
-					Score:  float64(item.CreatedAt.Unix()) + float64(item.CreatedAt.UnixNano())*1e-18,
+					Score:  scoreByCreatedAt(item.CreatedAt),
 					Member: item.ID,
 				})
 			}
