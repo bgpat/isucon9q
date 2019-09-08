@@ -62,6 +62,8 @@ var (
 	templates *template.Template
 	dbx       *sqlx.DB
 	store     sessions.Store
+
+	hostname string
 )
 
 type Config struct {
@@ -278,6 +280,9 @@ func init() {
 }
 
 func main() {
+
+	hostname, _ = os.Hostname()
+
 	host := os.Getenv("MYSQL_HOST")
 	if host == "" {
 		host = "127.0.0.1"
@@ -1041,6 +1046,14 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := updateItemStatus(targetItem, ItemStatusTrading); err != nil {
+		log.Print(err)
+
+		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
+		tx.Rollback()
+		return
+	}
+
 	_, err = tx.Exec("UPDATE `items` SET `buyer_id` = ?, `status` = ?, `updated_at` = ? WHERE `id` = ?",
 		buyer.ID,
 		ItemStatusTrading,
@@ -1539,6 +1552,14 @@ func postComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := updateItemStatus(item, ItemStatusSoldOut); err != nil {
+		log.Print(err)
+
+		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
+		tx.Rollback()
+		return
+	}
+
 	_, err = tx.Exec("UPDATE `items` SET `status` = ?, `updated_at` = ? WHERE `id` = ?",
 		ItemStatusSoldOut,
 		time.Now(),
@@ -1633,7 +1654,7 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		ext = ".jpg"
 	}
 
-	imgName := fmt.Sprintf("%s%s", secureRandomStr(16), ext)
+	imgName := fmt.Sprintf("%s/%s%s", hostname, secureRandomStr(16), ext)
 	err = ioutil.WriteFile(fmt.Sprintf("../public/upload/%s", imgName), img, 0644)
 	if err != nil {
 		log.Print(err)
@@ -1657,7 +1678,9 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := tx.Exec("INSERT INTO `items` (`seller_id`, `status`, `name`, `price`, `description`,`image_name`,`category_id`) VALUES (?, ?, ?, ?, ?, ?, ?)",
+	now := time.Now()
+
+	result, err := tx.Exec("INSERT INTO `items` (`seller_id`, `status`, `name`, `price`, `description`,`image_name`,`category_id`, `created_at`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		seller.ID,
 		ItemStatusOnSale,
 		name,
@@ -1665,6 +1688,7 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		description,
 		imgName,
 		category.ID,
+		now,
 	)
 	if err != nil {
 		log.Print(err)
@@ -1681,7 +1705,13 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now := time.Now()
+	if err := addItemStatus(itemID, now, ItemStatusOnSale); err != nil {
+		log.Print(err)
+
+		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
+		return
+	}
+
 	_, err = tx.Exec("UPDATE `users` SET `num_sell_items`=?, `last_bump`=? WHERE `id`=?",
 		seller.NumSellItems+1,
 		now,
