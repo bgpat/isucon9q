@@ -87,10 +87,11 @@ func getItems(statuses []string, createdAt time.Time, limit int64) ([]Item, erro
 		}
 		ids = append(ids, id)
 	}
+	query := "SELECT * FROM `items` WHERE `id` IN (" + strings.Join(ids, ",") + ")"
 	var items []Item
-	err := dbx.Select(&items, "SELECT * FROM `items` WHERE `id` IN ("+strings.Join(ids, ",")+")")
+	err := dbx.Select(&items, query)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, query)
 	}
 	return items, nil
 }
