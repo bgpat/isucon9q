@@ -24,7 +24,7 @@ func itemsKey(status string) string {
 }
 
 func calcScore(createdAt time.Time, id int64) float64 {
-	return float64(createdAt.Unix()) + float64(999999-id)*1e-6
+	return float64(createdAt.Unix()*1e+6) + float64(999999-id)
 }
 
 func addItemStatus(id int64, createdAt time.Time, status string) error {
@@ -56,7 +56,7 @@ func getItems(statuses []string, createdAt time.Time, limit, item_id int64) ([]I
 		status := status
 		eg.Go(func() error {
 			z, err := redisCli.ZRevRangeByScoreWithScores(itemsKey(status), redis.ZRangeBy{
-				Max:   strconv.FormatFloat(calcScore(createdAt, item_id + 1), 'f', 7, 64),
+				Max:   strconv.FormatFloat(calcScore(createdAt, item_id+1), 'f', 1, 64),
 				Count: limit,
 			}).Result()
 			if err != nil {
@@ -93,7 +93,7 @@ func getItems(statuses []string, createdAt time.Time, limit, item_id int64) ([]I
 		}
 		ids = append(ids, id)
 	}
-	query := "SELECT * FROM `items` WHERE `id` IN (" + strings.Join(ids, ",") + ") ORDER BY created_at DESC"
+	query := "SELECT * FROM `items` WHERE `id` IN (" + strings.Join(ids, ",") + ") ORDER BY created_at DESC, id DESC"
 	var items []Item
 	err := dbx.Select(&items, query)
 	if err != nil {
