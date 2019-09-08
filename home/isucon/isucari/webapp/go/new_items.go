@@ -22,26 +22,28 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 	}
 
 	createdAtStr := query.Get("created_at")
-	var createdAt int64
+	var createdAtInt64 int64
+	var createdAt time.Time = time.Now()
 	if createdAtStr != "" {
-		createdAt, err = strconv.ParseInt(createdAtStr, 10, 64)
-		if err != nil || createdAt <= 0 {
+		createdAtInt64, err = strconv.ParseInt(createdAtStr, 10, 64)
+		if err != nil || createdAtInt64 <= 0 {
 			outputErrorMsg(w, http.StatusBadRequest, "created_at param error")
 			return
 		}
+		createdAt=time.Unix(createdAtInt64, 0)
 	}
 
 	items := []Item{}
-	if itemID > 0 && createdAt > 0 {
+	if itemID > 0 && createdAtInt64 > 0 {
 		// paging
-		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, time.Unix(createdAt, 0), ItemsPerPage+1)
+		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, createdAt, ItemsPerPage+1)
 		if err != nil {
 			log.Print(err)
 			outputErrorMsg(w, http.StatusInternalServerError, "db error")
 			return
 		}
 	} else {
-		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, time.Unix(createdAt, 0), ItemsPerPage+1)
+		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, createdAt, ItemsPerPage+1)
 		// 1st page
 		if err != nil {
 			log.Print(err)
