@@ -8,6 +8,7 @@ Replace `$GITHUB_REPO_URL` and execute the following commands in the competition
 (e.g., `GITHUB_REPO_URL=https://github.com/bgpat/isucon-boilerplate.git`)
 
 ```bash
+export GITHUB_REPO_URL=https://github.com/bgpat/isucon9q.git
 cd /
 git init
 git remote add origin $GITHUB_REPO_URL
