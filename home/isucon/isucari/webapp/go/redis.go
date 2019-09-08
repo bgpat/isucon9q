@@ -71,6 +71,11 @@ func getItems(statuses []string, createdAt time.Time, limit int64) ([]Item, erro
 	if err := eg.Wait(); err != nil {
 		return nil, errors.WithStack(err)
 	}
+
+	if len(zs) == 0 {
+		return []Item{}, nil
+	}
+
 	sort.Slice(zs, func(i, j int) bool {
 		return zs[i].Score < zs[j].Score
 	})
