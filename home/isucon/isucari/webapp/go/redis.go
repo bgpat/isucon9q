@@ -48,7 +48,7 @@ func updateItemStatus(item Item, newStatus string) error {
 	return nil
 }
 
-func getItems(statuses []string, createdAt time.Time, limit int64) ([]Item, error) {
+func getItems(statuses []string, createdAt time.Time, limit, item_id int64) ([]Item, error) {
 	var eg errgroup.Group
 	var zs []redis.Z
 	var mu sync.Mutex
@@ -56,7 +56,7 @@ func getItems(statuses []string, createdAt time.Time, limit int64) ([]Item, erro
 		status := status
 		eg.Go(func() error {
 			z, err := redisCli.ZRevRangeByScoreWithScores(itemsKey(status), redis.ZRangeBy{
-				Max:   strconv.FormatFloat(calcScore(createdAt, 0), 'f', 7, 64),
+				Max:   strconv.FormatFloat(calcScore(createdAt, item_id - 1), 'f', 7, 64),
 				Count: limit,
 			}).Result()
 			if err != nil {

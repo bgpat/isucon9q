@@ -36,14 +36,14 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 	items := []Item{}
 	if itemID > 0 && createdAtInt64 > 0 {
 		// paging
-		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, createdAt, ItemsPerPage+1)
+		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, createdAt, ItemsPerPage+1, itemID)
 		if err != nil {
 			log.Print(err)
 			outputErrorMsg(w, http.StatusInternalServerError, "db error")
 			return
 		}
 	} else {
-		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, createdAt, ItemsPerPage+1)
+		items, err = getItems([]string{ItemStatusOnSale, ItemStatusSoldOut}, createdAt, ItemsPerPage+1, 999999)
 		// 1st page
 		if err != nil {
 			log.Print(err)
