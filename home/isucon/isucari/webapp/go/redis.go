@@ -74,8 +74,13 @@ func getItems(statuses []string, createdAt time.Time, limit int64) ([]Item, erro
 	sort.Slice(zs, func(i, j int) bool {
 		return zs[i].Score < zs[j].Score
 	})
-	ids := make([]string, 0, limit)
-	for _, z := range zs[:limit] {
+	limitsize := limit
+	if int64(len(zs)) < limitsize {
+		limitsize = int64(len(zs))
+	}
+	ids := make([]string, 0, limitsize)
+
+	for _, z := range zs[:limitsize] {
 		id, ok := z.Member.(string)
 		if !ok {
 			return nil, errors.Errorf("failed to cast z.Member: %T", z.Member)
