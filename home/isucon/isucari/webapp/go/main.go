@@ -1044,7 +1044,7 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 	if err := updateItemStatus(targetItem, ItemStatusTrading); err != nil {
 		log.Print(err)
 
-		outputErrorMsg(w, http.StatusInternalServerError, "db error")
+		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
 		tx.Rollback()
 		return
 	}
@@ -1543,6 +1543,14 @@ func postComplete(w http.ResponseWriter, r *http.Request) {
 		log.Print(err)
 
 		outputErrorMsg(w, http.StatusInternalServerError, "db error")
+		tx.Rollback()
+		return
+	}
+
+	if err := updateItemStatus(item, ItemStatusSoldOut); err != nil {
+		log.Print(err)
+
+		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
 		tx.Rollback()
 		return
 	}
