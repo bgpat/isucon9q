@@ -50,6 +50,11 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := redisCli.FlushDB().Err(); err != nil {
+		log.Printf("%+v\n", err)
+		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
+		return
+	}
 	if err := initializeItems(); err != nil {
 		log.Printf("%+v\n", err)
 		outputErrorMsg(w, http.StatusInternalServerError, "redis error")
