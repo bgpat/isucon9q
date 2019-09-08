@@ -77,7 +77,11 @@ func initializeItems() error {
 	var eg errgroup.Group
 	var items []Item
 	for _, status := range []string{
-		"on_sale",
+		ItemStatusOnSale,
+		ItemStatusTrading,
+		ItemStatusSoldOut,
+		ItemStatusStop,
+		ItemStatusCancel,
 	} {
 		status := status
 		eg.Go(func() error {
