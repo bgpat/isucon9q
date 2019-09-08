@@ -1041,6 +1041,14 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := updateItemStatus(targetItem, ItemStatusTrading); err != nil {
+		log.Print(err)
+
+		outputErrorMsg(w, http.StatusInternalServerError, "db error")
+		tx.Rollback()
+		return
+	}
+
 	_, err = tx.Exec("UPDATE `items` SET `buyer_id` = ?, `status` = ?, `updated_at` = ? WHERE `id` = ?",
 		buyer.ID,
 		ItemStatusTrading,
