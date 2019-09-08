@@ -1,9 +1,15 @@
 export GO111MODULE=on
 
-all: isucari rotate.access_log rotate.slow_log
+all: deploy rotate.access_log rotate.slow_log
 
 isucari: *.go
 	go build -o isucari
+
+.PHONY: deploy
+deploy:
+	systemctl stop isucari.golang.service
+	$(MAKE) isucari
+	systemctl start isucari.golang.service
 
 rotate.access_log:
 	cp /var/log/nginx/access.log /var/log/nginx/access.log.backup
