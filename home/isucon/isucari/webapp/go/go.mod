@@ -12,5 +12,6 @@ require (
 	github.com/pkg/errors v0.8.1
 	goji.io v2.0.2+incompatible
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/appengine v1.6.2 // indirect
 )

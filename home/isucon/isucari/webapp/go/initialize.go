@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 )
 
 func postInitialize(w http.ResponseWriter, r *http.Request) {
@@ -73,19 +74,27 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 }
 
 func initializeItems() error {
+	var eg errgroup.Group
 	var items []Item
-	status := "on_sale"
-	err := dbx.Select(&items, "SELECT * FROM `items` WHERE `status` = ?", status)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	z := make([]redis.Z, 0, len(items))
-	for _, item := range items {
-		z = append(z, redis.Z{
-			Score:  float64(item.CreatedAt.Unix()) + float64(item.CreatedAt.UnixNano())*1e-18,
-			Member: item.ID,
+	for _, status := range []string{
+		"on_sale",
+	} {
+		status := status
+		eg.Go(func() error {
+			err := dbx.Select(&items, "SELECT * FROM `items` WHERE `status` = ?", status)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			z := make([]redis.Z, 0, len(items))
+			for _, item := range items {
+				z = append(z, redis.Z{
+					Score:  float64(item.CreatedAt.Unix()) + float64(item.CreatedAt.UnixNano())*1e-18,
+					Member: item.ID,
+				})
+			}
+			key := itemsKey(status)
+			return errors.WithStack(redisCli.ZAdd(key, z...).Err())
 		})
 	}
-	key := itemsKey(status)
-	return errors.WithStack(redisCli.ZAdd(key, z...).Err())
+	return errors.WithStack(eg.Wait())
 }
