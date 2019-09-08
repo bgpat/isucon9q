@@ -326,7 +326,7 @@ func main() {
 		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
 		user,
 		password,
-		host_save,
+		host_slave,
 		port,
 		dbname,
 	)
