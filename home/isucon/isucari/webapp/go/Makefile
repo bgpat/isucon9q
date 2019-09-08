@@ -12,7 +12,7 @@ rotate.access_log:
 	echo  > /var/log/nginx/access.log
 
 rotate.slow_log:
-	mysqldumpslow -s t /var/log/mysql/mysql-slow.log > /var/log/mysql/mysql-slow.sql.backup
-	head -40 /var/log/mysql/mysql-slow.sql.backup > slow_log.out
+	mysqldumpslow -s t /var/log/mysql/mysql-slow.sql > /var/log/mysql/mysql-slow.sql.backup
+	head -35 /var/log/mysql/mysql-slow.sql.backup > slow_log.out
 	slackcat -c slowlog -i 😓  -u 'slowlogくん' slow_log.out
 	echo  > /var/log/mysql/mysql-slow.sql
