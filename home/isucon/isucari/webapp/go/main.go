@@ -280,7 +280,8 @@ func init() {
 }
 
 func main() {
-	hostname = os.Getenv("HOSTNAME")
+
+	hostname, _ = os.Hostname()
 
 	host := os.Getenv("MYSQL_HOST")
 	if host == "" {
