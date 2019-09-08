@@ -17,6 +17,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
+	"github.com/linxGnu/mssqlx"
 	goji "goji.io"
 	"goji.io/pat"
 	"golang.org/x/crypto/bcrypt"
@@ -60,7 +61,7 @@ const (
 
 var (
 	templates *template.Template
-	dbx       *sqlx.DB
+	dbx       *mssqlx.DBs
 	store     sessions.Store
 
 	hostname string
@@ -287,6 +288,10 @@ func main() {
 	if host == "" {
 		host = "127.0.0.1"
 	}
+	host_slave := os.Getenv("MYSQL_HOST_SLAVE")
+	if host_slave == "" {
+		host = "127.0.0.1"
+	}
 	port := os.Getenv("MYSQL_PORT")
 	if port == "" {
 		port = "3306"
@@ -317,7 +322,16 @@ func main() {
 		dbname,
 	)
 
-	dbx, err = sqlx.Open("mysql", dsn)
+	dsn_slave := fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+		user,
+		password,
+		host_save,
+		port,
+		dbname,
+	)
+
+	dbx, err = mssqlx.ConnectMasterSlaves("mysql", []string{dsn}, []string{dsn_slave})
 	if err != nil {
 		log.Fatalf("failed to connect to DB: %s.", err.Error())
 	}
